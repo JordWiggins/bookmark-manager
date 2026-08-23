@@ -38,10 +38,14 @@ function App() {
         // opening fragement - used yo group code together, kind of like a div without an official box around it 
         <> 
           <h2>Subcategories</h2>
-          <div>
-            <button onClick={() => setSelectedSubCategory('projects')}>Projects</button>
-            <button onClick={() => setSelectedSubCategory('resources')}>Resources</button>
+          <div> 
+            {Object.keys(categories[selectedCategory]).map((subCategory) => ( // map through the subcategories of the selected category
+              <button key={subCategory} onClick={() => setSelectedSubCategory(subCategory)}>
+                {subCategory}
+              </button>
+            ))}
           </div>
+        
           <p>Selected subcategory: {selectedSubCategory}</p>
         </>
       )}
