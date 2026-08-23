@@ -1,9 +1,25 @@
 import { useState } from 'react'
 
 function App() {
+  // use states
   const [selectedCategory, setSelectedCategory] = useState('')
   const [selectedSubCategory, setSelectedSubCategory] = useState('')
   const [selectedTopic, setSelectedTopic] = useState('')
+
+  const categories = { // object to represent the categories
+    work: { // property of categories, type object
+      projects: ['typescript', 'react'], // property of work, type array
+      resources: ['typescript', 'react'], // property of work, type array
+    },
+    personal: {
+      projects: ['typescript', 'react'],
+      resources: ['typescript', 'react'],
+    },
+    learning: {
+      projects: ['typescript', 'react'],
+      resources: ['typescript', 'react'],
+    },
+  }
 
   return (
     <div>
