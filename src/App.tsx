@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import './App.css'
 
 function App() {
   const categories = { // object to represent the categories
@@ -16,79 +17,198 @@ function App() {
     },
   }
 
+  const bookmarks = [
+    {
+      id: 1,
+      title: 'React Documentation',
+      url: 'https://react.dev',
+      description: 'Official React documentation',
+      category: 'learning',
+      subCategory: 'resources',
+      topic: 'react',
+      favourite: true,
+    },
+    {
+      id: 2,
+      title: 'TypeScript Documentation',
+      url: 'https://www.typescriptlang.org',
+      description: 'Official TypeScript documentation',
+      category: 'work',
+      subCategory: 'resources',
+      topic: 'typescript',
+      favourite: false,
+    },
+    {
+      id: 3,
+      title: 'Personal React Project',
+      url: 'https://example.com',
+      description: 'Example personal React project',
+      category: 'personal',
+      subCategory: 'projects',
+      topic: 'react',
+      favourite: true,
+    },
+ ]
+
   type Category = keyof typeof categories // type of category is the keys of the categories object
   type SubCategory = keyof typeof categories[Category] // type of subcategory is the keys of the categories object
 
    // use states
-  const [selectedCategory, setSelectedCategory] = useState<Category | ''>('') // type category or empty
-  const [selectedSubCategory, setSelectedSubCategory] = useState<SubCategory | ''>('') // type subcategory or empty
-  const [selectedTopic, setSelectedTopic] = useState('')
+  const [selectedCategories, setSelectedCategories] = useState<Category[]>([])
+  const [selectedSubCategories, setSelectedSubCategories] = useState<SubCategory[]>([])
+  const [selectedTopics, setSelectedTopics] = useState<string[]>([])
+  const [showFavourites, setShowFavourites] = useState(false)
 
-  const handleCategorySelect = (category : Category) => {
-    setSelectedCategory(category)
-    setSelectedSubCategory('') // reset subcategory when a new category is selected
-    setSelectedTopic('') // reset topic when a new category is selected
+  const handleCategorySelect = (category: Category) => {
+  setSelectedCategories((currentCategories) => // use the current selected categories
+    currentCategories.includes(category) // if the category is already selected
+      ? currentCategories.filter((item) => item !== category) // remove it from the array
+      : [...currentCategories, category] // otherwise create a new array from the current array withthe selected category added to the end
+  )
+  setSelectedSubCategories([]) // reset subcategory
+  setSelectedTopics([]) // reset topic
   }
 
   const handleSubCategorySelect = (subCategory : SubCategory) => {
-    setSelectedSubCategory(subCategory)
-    setSelectedTopic('') // reset topic when a new subcategory is selected
+  setSelectedSubCategories((currentSubCategories) =>
+    currentSubCategories.includes(subCategory)
+      ? currentSubCategories.filter((item) => item !== subCategory)
+      : [...currentSubCategories, subCategory]
+  )
+
+    setSelectedTopics([]) // reset topic when a new subcategory is selected
   }
+
+  const handleTopicSelect = (topic: string) => {
+  setSelectedTopics((currentTopics) =>
+    currentTopics.includes(topic)
+      ? currentTopics.filter((item) => item !== topic)
+      : [...currentTopics, topic]
+  )
+  }
+
+  const filteredBookmarks = bookmarks.filter((bookmark) => {
+    const matchesCategory =
+      selectedCategories.length === 0 ||
+      selectedCategories.includes(bookmark.category as Category)
+
+    const matchesSubCategory =
+      selectedSubCategories.length === 0 ||
+      selectedSubCategories.includes(bookmark.subCategory as SubCategory)
+    
+    const matchesTopic =
+      selectedTopics.length === 0 ||
+      selectedTopics.includes(bookmark.topic)
+    
+    const matchesFavourites = !showFavourites || bookmark.favourite
+
+    return matchesCategory && matchesSubCategory && matchesTopic && matchesFavourites
+  })
 
   return (
     <div>
-      <header>
+
+      <header className="app-header">
         <h1>Bookmark Manager</h1>
-        <div>
+        <div className="header-actions">
           <button>Add Bookmark</button>
-          <button>Favourites</button>
+          <button
+            className={showFavourites ? 'selected' : ''}
+            onClick={() => setShowFavourites((current) => !current)}
+          >
+            Favourites
+          </button>
         </div>
       </header>
 
-      <nav aria-label="Bookmark filters">
-        <section>
-          <h2>Categories</h2>
+      <nav className="bookmark-filters" aria-label="Bookmark filters">
 
-          <div>
-            <button onClick={() => handleCategorySelect('work')}>Work</button>
-            <button onClick={() => handleCategorySelect('personal')}>Personal</button>
-            <button onClick={() => handleCategorySelect('learning')}>Learning</button>
+        <section className="category-filter">
+          <h2>Categories:</h2>
+          <div className="category-buttons">
+            <button
+              className={selectedCategories.includes('work') ? 'selected' : ''}
+              onClick={() => handleCategorySelect('work')}
+            >
+              Work            
+            </button>
+            <button
+              className={selectedCategories.includes('personal') ? 'selected' : ''}
+              onClick={() => handleCategorySelect('personal')}
+            >
+              Personal
+            </button>
+            <button
+              className={selectedCategories.includes('learning') ? 'selected' : ''}
+              onClick={() => handleCategorySelect('learning')}
+            >
+              Learning
+            </button>
           </div>
-
-          <p>Selected category: {selectedCategory}</p>
         </section>
 
-        {selectedCategory && ( // if thing on the left is selected, render thing on the right
-          // opening fragement - used to group code together, kind of like a div without an official box around it 
+        {selectedCategories.length > 0 && ( // if thing on the left is selected, render thing on the right
           <section> 
             <h2>Subcategories</h2>
             <div> 
-              {(Object.keys(categories[selectedCategory]) as SubCategory[]).map((subCategory) => ( // map through the subcategories of the selected category
-                <button key={subCategory} onClick={() => handleSubCategorySelect(subCategory)}>
+              {Array.from( // create a new array from the unique subcategories of the selected categories
+                new Set( // remove duplicates from the array of subcategories
+                  selectedCategories.flatMap((category) => // flatmap through the selected categories and return the subcategories of each category
+                    Object.keys(categories[category]) as SubCategory[] // cast the keys of the categories object to the SubCategory type
+                  )
+                )
+              ).map((subCategory) => ( // map through the unique subcategories and render a button for each one
+                <button
+                  key={subCategory}
+                  className={selectedSubCategories.includes(subCategory) ? 'selected' : ''}
+                  onClick={() => handleSubCategorySelect(subCategory)}
+                >
+
                   {subCategory}
                 </button>
               ))}
-            </div>
-          
-            <p>Selected subcategory: {selectedSubCategory}</p>
+            </div>         
           </section>
         )}
 
-        {selectedCategory && selectedSubCategory && (
+        {selectedCategories.length > 0 && selectedSubCategories.length > 0 && (
           <section>
             <h2>Topics</h2>
             <div>
-              {categories[selectedCategory][selectedSubCategory].map((topic) => ( // map through the topics of the selected subcategory
-                <button key={topic} onClick={() => setSelectedTopic(topic)}>
+              {Array.from(
+                new Set(
+                  selectedCategories.flatMap((category) =>
+                    selectedSubCategories.flatMap((subCategory) =>
+                      categories[category][subCategory]
+                    )
+                  )
+                )
+              ).map((topic) => ( // map through the topics of the selected subcategory
+                <button key={topic} className={selectedTopics.includes(topic) ? 'selected' : ''} onClick={() => handleTopicSelect(topic)}>
                   {topic}
                 </button>
               ))}
             </div>
-            <p>Selected topic: {selectedTopic}</p>
           </section>
         )}
       </nav>
-      <main><h2>Bookmarks</h2></main>
+
+      <main>
+        <h2>Bookmarks</h2>
+
+        {filteredBookmarks.map((bookmark) => (
+          <div key={bookmark.id}>
+            <a href={bookmark.url} target="_blank">
+              {bookmark.title}
+            </a>
+
+            <p>{bookmark.description}</p>
+            <p>{bookmark.category}</p>
+            <p>{bookmark.subCategory}</p>
+            <p>{bookmark.topic}</p>
+          </div>
+        ))}
+      </main>
     </div>
   )
 }
