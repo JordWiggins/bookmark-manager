@@ -1,58 +1,13 @@
 import { useState } from 'react'
 import './App.css'
+import Header from './components/Header'
+import BookmarkFilters from './components/BookmarkFilters'
+import BookmarkList from './components/BookmarkList'
+import type { Category, SubCategory } from './types/category'
+import { bookmarks } from './data/bookmarks'
+import { categories } from './data/categories'
 
 function App() {
-  const categories = { // object to represent the categories
-    work: { // property of categories, type object
-      projects: ['typescript', 'react'], // property of work, type array
-      resources: ['typescript', 'react'], // property of work, type array
-    },
-    personal: {
-      projects: ['typescript', 'react'],
-      resources: ['typescript', 'react'],
-    },
-    learning: {
-      projects: ['typescript', 'react'],
-      resources: ['typescript', 'react'],
-    },
-  }
-
-  const bookmarks = [
-    {
-      id: 1,
-      title: 'React Documentation',
-      url: 'https://react.dev',
-      description: 'Official React documentation',
-      category: 'learning',
-      subCategory: 'resources',
-      topic: 'react',
-      favourite: true,
-    },
-    {
-      id: 2,
-      title: 'TypeScript Documentation',
-      url: 'https://www.typescriptlang.org',
-      description: 'Official TypeScript documentation',
-      category: 'work',
-      subCategory: 'resources',
-      topic: 'typescript',
-      favourite: false,
-    },
-    {
-      id: 3,
-      title: 'Personal React Project',
-      url: 'https://example.com',
-      description: 'Example personal React project',
-      category: 'personal',
-      subCategory: 'projects',
-      topic: 'react',
-      favourite: true,
-    },
- ]
-
-  type Category = keyof typeof categories // type of category is the keys of the categories object
-  type SubCategory = keyof typeof categories[Category] // type of subcategory is the keys of the categories object
-
    // use states
   const [selectedCategories, setSelectedCategories] = useState<Category[]>([])
   const [selectedSubCategories, setSelectedSubCategories] = useState<SubCategory[]>([])
@@ -108,107 +63,27 @@ function App() {
   return (
     <div>
 
-      <header className="app-header">
-        <h1>Bookmark Manager</h1>
-        <div className="header-actions">
-          <button>Add Bookmark</button>
-          <button
-            className={showFavourites ? 'selected' : ''}
-            onClick={() => setShowFavourites((current) => !current)}
-          >
-            Favourites
-          </button>
-        </div>
-      </header>
+      <Header
+        showFavourites={showFavourites}
+        onToggleFavourites={() =>
+          setShowFavourites((current) => !current)
+        }
+      />
 
-      <nav className="bookmark-filters" aria-label="Bookmark filters">
+      <BookmarkFilters
+        categories={categories}
+        selectedCategories={selectedCategories}
+        selectedSubCategories={selectedSubCategories}
+        selectedTopics={selectedTopics}
+        onCategorySelect={handleCategorySelect}
+        onSubCategorySelect={handleSubCategorySelect}
+        onTopicSelect={handleTopicSelect}
+      />
 
-        <section className="category-filter">
-          <h2>Categories:</h2>
-          <div className="category-buttons">
-            <button
-              className={selectedCategories.includes('work') ? 'selected' : ''}
-              onClick={() => handleCategorySelect('work')}
-            >
-              Work            
-            </button>
-            <button
-              className={selectedCategories.includes('personal') ? 'selected' : ''}
-              onClick={() => handleCategorySelect('personal')}
-            >
-              Personal
-            </button>
-            <button
-              className={selectedCategories.includes('learning') ? 'selected' : ''}
-              onClick={() => handleCategorySelect('learning')}
-            >
-              Learning
-            </button>
-          </div>
-        </section>
+      <BookmarkList 
+        bookmarks={filteredBookmarks} 
+      />
 
-        {selectedCategories.length > 0 && ( // if thing on the left is selected, render thing on the right
-          <section> 
-            <h2>Subcategories</h2>
-            <div> 
-              {Array.from( // create a new array from the unique subcategories of the selected categories
-                new Set( // remove duplicates from the array of subcategories
-                  selectedCategories.flatMap((category) => // flatmap through the selected categories and return the subcategories of each category
-                    Object.keys(categories[category]) as SubCategory[] // cast the keys of the categories object to the SubCategory type
-                  )
-                )
-              ).map((subCategory) => ( // map through the unique subcategories and render a button for each one
-                <button
-                  key={subCategory}
-                  className={selectedSubCategories.includes(subCategory) ? 'selected' : ''}
-                  onClick={() => handleSubCategorySelect(subCategory)}
-                >
-
-                  {subCategory}
-                </button>
-              ))}
-            </div>         
-          </section>
-        )}
-
-        {selectedCategories.length > 0 && selectedSubCategories.length > 0 && (
-          <section>
-            <h2>Topics</h2>
-            <div>
-              {Array.from(
-                new Set(
-                  selectedCategories.flatMap((category) =>
-                    selectedSubCategories.flatMap((subCategory) =>
-                      categories[category][subCategory]
-                    )
-                  )
-                )
-              ).map((topic) => ( // map through the topics of the selected subcategory
-                <button key={topic} className={selectedTopics.includes(topic) ? 'selected' : ''} onClick={() => handleTopicSelect(topic)}>
-                  {topic}
-                </button>
-              ))}
-            </div>
-          </section>
-        )}
-      </nav>
-
-      <main>
-        <h2>Bookmarks</h2>
-
-        {filteredBookmarks.map((bookmark) => (
-          <div key={bookmark.id}>
-            <a href={bookmark.url} target="_blank">
-              {bookmark.title}
-            </a>
-
-            <p>{bookmark.description}</p>
-            <p>{bookmark.category}</p>
-            <p>{bookmark.subCategory}</p>
-            <p>{bookmark.topic}</p>
-          </div>
-        ))}
-      </main>
     </div>
   )
 }
